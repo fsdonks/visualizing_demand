@@ -4,8 +4,8 @@
 #Load the data.
 # libraries
 import seaborn as sns
-import pandas as pd
 import matplotlib.pyplot as plt
+from PIL import Image
 
 def trends_by_demand_type(DemandTrends):
     DemandTrends['TotalFilled']=DemandTrends['TotalFilled']
@@ -37,7 +37,7 @@ def sand_trends_by_demand_group(DemandTrends):
      
     # Add a title for the whole plot
     plt.subplots_adjust(top=0.92)
-    g = g.fig.suptitle('Evolution of the value of stuff in 16 countries')
+    g = g.fig.suptitle('Fill by Demand Type')
 
 #Compute % met by demand type and SRC
 
@@ -57,10 +57,24 @@ def fills_by_demand_group(DemandTrends):
     fills=fills.sort_values(['%_met'])
     return fills
 
-def process_trends(demand_trends_path):
-    # Create a dataset
-    df = pd.read_csv(demand_trends_path, sep="\t")
-    sand_trends_by_demand_group(df)
+def process_trends(DemandTrends, plot_path):
+    sand_trends_by_demand_group(DemandTrends)
+    plt.savefig(plot_path)
     # Show the graph
     plt.show()
-    print(fills_by_demand_group(df))
+    fills=fills_by_demand_group(DemandTrends)
+    print(fills)
+    return fills
+
+def images_to_pdf(image_paths, filename):
+    image_paths = [Image.open(x) for x in image_paths]
+    im1=image_paths[0]
+    im_list = image_paths[1:]
+    im1.save(filename, "PDF" ,resolution=100.0, save_all=True,          append_images=im_list)
+    
+def dataframe_to_image(df, out_path):
+    fig, ax =plt.subplots(figsize=(12,4))
+    ax.axis('tight')
+    ax.axis('off')
+    the_table = ax.table(cellText=df.values,colLabels=df.columns,loc='center')
+    fig.savefig(out_path)
