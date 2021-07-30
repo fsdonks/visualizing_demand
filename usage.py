@@ -10,19 +10,22 @@ import sys
 import by_demandgroup as dep
 
 def load_tab(path):
-    return pd.read_csv(path, sep="\t")
+    df=pd.read_csv(path, sep="\t")
+    df=dep.lerp_demand_trends(df)
+    return df
 
 no_hold_path="/home/craig/runs/rand-runs-demand-trends/base-testdata-v7/DemandTrends.txt"
-hold_path="/home/craig/runs/big_test/base-testdata-v7/DemandTrends.txt"
-no_hold_trends=load_tab(no_hold_path)
+hold_path="/home/craig/runs/test-run/testdata-v7-bog/DemandTrends.txt"
 hold_trends=load_tab(hold_path)
+no_hold_trends=load_tab(no_hold_path)
+
 out_root= "/home/craig/runs/visualizing_demand/"
 no_hold_image= out_root+"no_peak_hold.jpg"
 no_holds=dep.process_trends(no_hold_trends, no_hold_image)
 hold_image=out_root+"yes_peak_hold.jpg"
 holds=dep.process_trends(hold_trends, hold_image)
 combined=pd.merge(no_holds, holds, on="DemandGroup", how="outer", suffixes=("_no_hold", "_hold"))
-combined["%met_increase"]=combined["%_met_no_hold"]-combined["%_met_hold"]
+combined["%met_increase"]=combined["%_met_hold"]-combined["%_met_no_hold"]
 print(combined)
 
 def add_periods(DemandTrends, m4_wkbk_path):
@@ -32,9 +35,8 @@ def add_periods(DemandTrends, m4_wkbk_path):
     print(bins)
     labels=periods['Name']
     DemandTrends['periods']=pd.cut(x=DemandTrends['t'], bins=bins, labels=labels)
-    print(DemandTrends.head())
     
-add_periods(load_tab("/home/craig/runs/big_test/base-testdata-v7/DemandTrends.txt"), "/home/craig/runs/big_test/base-testdata-v7.xlsx")
+#add_periods(load_tab("/home/craig/runs/big_test/base-testdata-v7/DemandTrends.txt"), "/home/craig/runs/big_test/base-testdata-v7.xlsx")
 
 hold_table=out_root+"met_table.jpg"
 dep.dataframe_to_image(combined, hold_table)
