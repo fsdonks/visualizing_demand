@@ -103,10 +103,13 @@ def delta_table(run_seq, out_path):
         fill_list.append([run_name, demand_fill_table])
     df_merged = reduce(merge_fill, fill_list)
     df_merged["%met_increase"]=df_merged["%_met_"+last_run_name]-df_merged["%_met_"+first_run_name]
+    y_lim_max=max(map(lambda grid: grid.axes[0].get_ylim()[1], grid_list))
+    x_lim_max=max(map(lambda grid: grid.axes[0].get_xlim()[1], grid_list))
+    
     for grid_num in range(len(grid_list)):
         grid=grid_list[grid_num]
-        grid.set(ylim=(0, 30))
-        #plt.show()
+        grid.set(ylim=(0, y_lim_max))
+        grid.set(xlim=(0, x_lim_max))
         grid.savefig(image_list[grid_num])
     results_pdf(df_merged, image_list, out_path)
     
