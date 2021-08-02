@@ -11,8 +11,9 @@ def trends_by_demand_type(DemandTrends):
     DemandTrends['TotalFilled']=DemandTrends['TotalFilled']
     DemandTrends["Unmet"]=DemandTrends["TotalRequired"] - DemandTrends["Deployed"]
     DemandTrends["Unmet"]=DemandTrends["Unmet"]+DemandTrends["TotalFilled"]
+    alphabetical=sorted(DemandTrends.DemandGroup.unique(), key=str.lower)
     #here, group by interest, then send through:
-    return DemandTrends.groupby(['t', 'DemandGroup']).sum().reset_index()
+    return DemandTrends.groupby(['t', 'DemandGroup']).sum().reset_index(), alphabetical
 
 
 # In[5]:
@@ -22,9 +23,9 @@ def trends_by_demand_type(DemandTrends):
 #Facet grid is nice because it makes vertical axis consistent.
 
 def sand_trends_by_demand_group(DemandTrends):
+    trends, group_order=trends_by_demand_type(DemandTrends)
     # Create a grid : initialize it
-    g = sns.FacetGrid(trends_by_demand_type(DemandTrends), col='DemandGroup', hue='DemandGroup', col_wrap=4, )
-    
+    g = sns.FacetGrid(trends, col='DemandGroup', hue='DemandGroup', col_wrap=4, col_order=group_order)
     # Add the line over the area with the plot function
     g = g.map(plt.plot, 't', 'TotalFilled', drawstyle="steps-post", color='green', lw=.01)
     g = g.map(plt.plot, 't', 'Unmet', drawstyle="steps-post", color='black', lw=.01)
@@ -33,11 +34,12 @@ def sand_trends_by_demand_group(DemandTrends):
     g = g.map(plt.fill_between, 't', 'Unmet', 'TotalFilled', step='post', color='black', lw=.01).set_titles("{col_name} DemandGroup")
     
     # Control the title of each facet
-    g = g.set_titles("{col_name}")
+    g.set_titles("{col_name}")
      
     # Add a title for the whole plot
     plt.subplots_adjust(top=0.92)
-    g = g.fig.suptitle('Fill by Demand Type')
+    g.fig.suptitle('Fill by Demand Type')
+    return g
 
 #Compute % met by demand type and SRC
 
@@ -58,13 +60,12 @@ def fills_by_demand_group(DemandTrends):
     return fills
 
 def process_trends(DemandTrends, plot_path):
-    sand_trends_by_demand_group(DemandTrends)
-    plt.savefig(plot_path)
+    grid=sand_trends_by_demand_group(DemandTrends)
+    #plt.savefig(plot_path)
     # Show the graph
-    plt.show()
+    #plt.show()
     fills=fills_by_demand_group(DemandTrends)
-    print(fills)
-    return fills
+    return fills, grid
 
 def images_to_pdf(image_paths, filename):
     image_paths = [Image.open(x) for x in image_paths]
