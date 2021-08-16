@@ -10,6 +10,7 @@ import pandas as pd
 import sys
 import openpyxl
 from functools import reduce
+import subprocess
 
 def trends_by_demand_type(DemandTrends):
     DemandTrends['TotalFilled']=DemandTrends['TotalFilled']
@@ -185,8 +186,14 @@ def delta_table(run_seq, out_path):
     grid_list=[]
     for run_name, max_dict in max_dicts.items():
         trends = combine_runs(max_dict['run_info'], max_dict['max_path'])
+        #write out trends to file for R script
+        trend_path=out_path+run_name+'_trends.txt'
+        trends.to_csv(trend_path, sep ='\t')
+        rg_out_name = run_name+"_rg_chart.jpeg"
+        subprocess.call(["Rscript", "/home/craig/workspace/visualize-demand/red_green_chart.R", trend_path, rg_out_name, out_path])
         sand_chart_path= out_path+run_name+".jpg"
         image_list.append(sand_chart_path)
+        image_list.append(out_path + rg_out_name)
         demand_fill_table, grid=process_trends(trends, sand_chart_path)
         grid_list.append(grid)
         fill_list.append([run_name, demand_fill_table])
@@ -194,12 +201,14 @@ def delta_table(run_seq, out_path):
     df_merged["%met_increase"]=df_merged["%_met_"+last_run_name]-df_merged["%_met_"+first_run_name]
     y_lim_max=max(map(lambda grid: grid.axes[0].get_ylim()[1], grid_list))
     x_lim_max=max(map(lambda grid: grid.axes[0].get_xlim()[1], grid_list))
-    
+    delta=0
     for grid_num in range(len(grid_list)):
         grid=grid_list[grid_num]
         grid.set(ylim=(0, y_lim_max))
         grid.set(xlim=(0, x_lim_max))
-        grid.savefig(image_list[grid_num])
+        grid.savefig(image_list[grid_num+delta])
+        #there was also a red, green chart added to image_list
+        delta=delta+1
     results_pdf(df_merged, image_list, out_path)
     
 def add_periods(DemandTrends, m4_wkbk_path):
