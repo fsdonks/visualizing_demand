@@ -18,6 +18,10 @@ runs2 = {"A": "/home/craig/runs/rand-runs-demand-trends/base-testdata-v7/DemandT
         ##one SRC
         "B": "/home/craig/runs/test-run/testdata-v7-bog/DemandTrends.txt"}
 
+big_run = {"A": "/home/craig/runs/big_test/base-testdata-v7/DemandTrends.txt",}
+
+little_run = {"A": "/home/craig/runs/test-run/testdata-v7-bog/DemandTrends.txt",}
+
 #add_periods(load_trends("/home/craig/runs/big_test/base-testdata-v7/DemandTrends.txt"), "/home/craig/runs/big_test/base-testdata-v7.xlsx")
 
-dep.delta_table(runs, "/home/craig/runs/visualizing_demand/")
+dep.delta_table(big_run, "/home/craig/runs/visualizing_demand/")

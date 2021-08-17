@@ -197,7 +197,13 @@ def delta_table(run_seq, out_path):
         demand_fill_table, grid=process_trends(trends, sand_chart_path)
         grid_list.append(grid)
         fill_list.append([run_name, demand_fill_table])
-    df_merged = reduce(merge_fill, fill_list)
+    if len(fill_list)==1:
+        run_name, demand_fill_table = fill_list[0]
+        demand_fill_table.rename(columns={"%_met": "%_met_"+run_name}, inplace=True)
+        df_merged=demand_fill_table
+    else:
+        df_merged = reduce(merge_fill, fill_list)
+    print(df_merged)
     df_merged["%met_increase"]=df_merged["%_met_"+last_run_name]-df_merged["%_met_"+first_run_name]
     y_lim_max=max(map(lambda grid: grid.axes[0].get_ylim()[1], grid_list))
     x_lim_max=max(map(lambda grid: grid.axes[0].get_xlim()[1], grid_list))

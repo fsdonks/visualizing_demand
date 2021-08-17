@@ -16,7 +16,9 @@ red.green.chart.plot <- function(original.data, original.data.order) {
   if(missing(original.data.order)){
     original.data.order=sort(names(original.data)[c(-1)])
   }
-  print(names(original.data))
+  #Just so the bar chart doesn't get too cluttered, could send a filter here I suppose
+  if(nrow(original.data)>30)
+    original.data=original.data[0:31,]
   in.data=red.green.chart.data(original.data, original.data.order)
   return(ggplot(in.data, aes(x=SRC, y=Value, fill=Type, width=0.95)) +
     geom_bar(position="stack", stat="identity") +
