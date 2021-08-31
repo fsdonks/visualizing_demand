@@ -11,6 +11,7 @@ import sys
 import openpyxl
 from functools import reduce
 import subprocess
+import os
 
 def trends_by_demand_type(DemandTrends):
     DemandTrends['TotalFilled']=DemandTrends['TotalFilled']
@@ -219,8 +220,15 @@ def delta_table(run_seq, out_path):
         delta=delta+1
     results_pdf(df_merged, image_list, out_path)
 
+def make_trends(trend_path, war_start, war_end):
+    """Given a path to demand trends, filter for the war period and compute filled and unfilled for the results."""
+    #ended here to load up the dataframe.
+    df=load_trends(trend_path)
+    
 def prep_data(path, war_start, war_end):
-    """"""
+    trend_files = [ f.path for f in os.scandir(path) if not f.is_dir() and f.name.endswith('_trends.txt') and f.name != 'base_trends.txt']
+    
+    return trend_files
     
 def prep_for_rg_charts(path):
     """Given the path to a directory containing multiple demand trend files that each end with _trends.txt, """
