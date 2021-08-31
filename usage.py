@@ -57,4 +57,5 @@ def cut_map(trend_path, max_path):
     return res
 
 max_path = '/home/craig/runs/visualizing_demand/computed_maxes.xlsx'
-cut_map("/home/craig/runs/cut-trends/trends/", max_path)
+in_map=cut_map("/home/craig/runs/cut-trends/trends/", max_path)
+dep.delta_table(in_map, "/home/craig/runs/cut-trends/trends/")

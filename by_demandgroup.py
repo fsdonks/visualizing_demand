@@ -166,7 +166,7 @@ def merge_fill(left, right):
     left_run_name, left_fill_table = left
     right_run_name, right_fill_table = right
     res = pd.merge(left_fill_table,right_fill_table,on="DemandGroup", how='outer', suffixes=("_"+left_run_name, "_"+right_run_name))
-    return res
+    return [right_run_name, res]
 
 def results_pdf(fill_table, image_list, out_path):
     hold_table=out_path+"met_table.jpg"
@@ -202,8 +202,10 @@ def delta_table(run_seq, out_path):
         demand_fill_table.rename(columns={"%_met": "%_met_"+run_name}, inplace=True)
         df_merged=demand_fill_table
     else:
-        df_merged = reduce(merge_fill, fill_list)
-    print(df_merged)
+        last_name, df_merged = reduce(merge_fill, fill_list)
+    #there were an odd number of runs so this last column didn't get renamed
+    if '%_met' in df_merged.columns:
+        df_merged=df_merged.rename(columns={'%_met': '%_met_'+last_run_name})
     df_merged["%met_increase"]=df_merged["%_met_"+last_run_name]-df_merged["%_met_"+first_run_name]
     y_lim_max=max(map(lambda grid: grid.axes[0].get_ylim()[1], grid_list))
     x_lim_max=max(map(lambda grid: grid.axes[0].get_xlim()[1], grid_list))
@@ -216,6 +218,12 @@ def delta_table(run_seq, out_path):
         #there was also a red, green chart added to image_list
         delta=delta+1
     results_pdf(df_merged, image_list, out_path)
+
+def prep_data(path, war_start, war_end):
+    """"""
+    
+def prep_for_rg_charts(path):
+    """Given the path to a directory containing multiple demand trend files that each end with _trends.txt, """
     
 def add_periods(DemandTrends, m4_wkbk_path):
     periods=pd.read_excel(m4_wkbk_path, sheet_name = "PeriodRecords")
