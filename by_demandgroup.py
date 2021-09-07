@@ -246,11 +246,19 @@ def prep_data(path, t_start, t_end):
     dfs = [add_data_tags(make_trends(f, t_start, t_end), f) for f in trend_files]
     res=pd.concat(dfs, axis=0, ignore_index=True)
     return res
+
+def base_data(path, t_start, t_end):
+    """Given the path to a directory containing a demand trend file called
+    base_trends.txt, output the base trends required for the red, green charts"""
+    df = make_trends(path+"base_trends.txt", t_start, t_end)
+    df=df.rename(columns={'Unfilled': 'Base Unfilled'})
+    df=df[['SRC', 'Demand', 'Base Unfilled']]
+    df.to_csv(path+'base_input.csv', index=False)
     
 def prep_for_rg_charts(path, t_start, t_end):
     """Given the path to a directory containing multiple demand trend files that each end with _trends.txt, """
     options = prep_data(path, t_start, t_end)
-
+    
     ##add hifes (hife.xlsx exists there)
     hife_path = path+'HIFEs.xlsx'
     hifes=pd.read_excel(hife_path)
@@ -263,8 +271,16 @@ def prep_for_rg_charts(path, t_start, t_end):
     options['Branch'] = options['Branch'].fillna('no_branch')
     ##spit base data
     ##instead of to csv, group_by Cut Level and Target 
+    groups=options.groupby(['Cut Level', 'Target'])
+    for k, gr in groups:
+        level, target=k
+        out_name='level_'+level +'_target_'+target+'_input.csv'
+        # You can save each 'gr' in a csv as follows
+        gr.to_csv(path+out_name)
+        
     ##dataframe to csv without index
     ##then output 3 charts for each
+    #subprocess.call(["Rscript", "/home/craig/workspace/visualize-demand/red_green_chart.R", trend_path, rg_out_name, out_path])
     options.to_csv(path+"all_options.txt", index = False)
     
 def add_periods(DemandTrends, m4_wkbk_path):

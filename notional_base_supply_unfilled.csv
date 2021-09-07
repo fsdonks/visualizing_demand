@@ -1,0 +1,18 @@
+SRC,Demand,Base Unfilled
+a,Defend,0
+a,Defeat,0
+a,Deter,0
+a,Disrupt,10
+b,Defend,0
+b,Defeat,0
+b,Deter,0
+b,Disrupt,5
+c,Defeat,0
+c,Deter,0
+c,Disrupt,10
+d,Defeat,0
+d,Deter,0
+e,Defend,0
+e,Defeat,0
+e,Deter,0
+e,Disrupt,0
