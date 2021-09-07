@@ -220,18 +220,52 @@ def delta_table(run_seq, out_path):
         delta=delta+1
     results_pdf(df_merged, image_list, out_path)
 
-def make_trends(trend_path, war_start, war_end):
+def add_data_tags(df, trend_path):
+    options=trend_path.split('_')
+    df['Cut Level'] = options[3]
+    df['Option'] = options[5]
+    df['Target']=options[1]
+    return df
+    
+def make_trends(trend_path, t_start, t_end):
     """Given a path to demand trends, filter for the war period and compute filled and unfilled for the results."""
     #ended here to load up the dataframe.
     df=load_trends(trend_path)
+    df=df[(df['t']>=t_start) & (df['t']<=t_end)]
+    df=df.groupby(['SRC', 'DemandGroup']).sum()
+    df=df.reset_index()
+    df=df[['SRC', 'DemandGroup', 'TotalRequired', 'Deployed']]
+    df=df.rename(columns={'DemandGroup' : 'Demand', 
+                          'TotalRequired' : 'Required',
+                          'Deployed' : 'Filled'})
+    df['Unfilled'] = df['Required'] - df['Filled']
+    return df
     
-def prep_data(path, war_start, war_end):
+def prep_data(path, t_start, t_end):
     trend_files = [ f.path for f in os.scandir(path) if not f.is_dir() and f.name.endswith('_trends.txt') and f.name != 'base_trends.txt']
+    dfs = [add_data_tags(make_trends(f, t_start, t_end), f) for f in trend_files]
+    res=pd.concat(dfs, axis=0, ignore_index=True)
+    return res
     
-    return trend_files
-    
-def prep_for_rg_charts(path):
+def prep_for_rg_charts(path, t_start, t_end):
     """Given the path to a directory containing multiple demand trend files that each end with _trends.txt, """
+    options = prep_data(path, t_start, t_end)
+
+    ##add hifes (hife.xlsx exists there)
+    hife_path = path+'HIFEs.xlsx'
+    hifes=pd.read_excel(hife_path)
+    options=pd.merge(left=options, right=hifes, how="left", on='SRC')
+    options['HIFE'] = ~(options['Unit'].isnull())*1  
+    ##add branch (branch.xlsx exists at path)
+    branch_path = path+'Branch.xlsx'
+    branches=pd.read_excel(branch_path)
+    options=pd.merge(left=options, right=branches, how="left", on='SRC')
+    options['Branch'] = options['Branch'].fillna('no_branch')
+    ##spit base data
+    ##instead of to csv, group_by Cut Level and Target 
+    ##dataframe to csv without index
+    ##then output 3 charts for each
+    options.to_csv(path+"all_options.txt", index = False)
     
 def add_periods(DemandTrends, m4_wkbk_path):
     periods=pd.read_excel(m4_wkbk_path, sheet_name = "PeriodRecords")
