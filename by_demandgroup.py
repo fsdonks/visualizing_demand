@@ -222,8 +222,8 @@ def delta_table(run_seq, out_path):
 
 def add_data_tags(df, trend_path):
     options=trend_path.split('_')
-    df['Cut Level'] = options[3]
-    df['Option'] = options[5]
+    df['Cut Level'] = options[5]
+    df['Option'] = options[3]
     df['Target']=options[1]
     return df
     
@@ -253,7 +253,9 @@ def base_data(path, t_start, t_end):
     df = make_trends(path+"base_trends.txt", t_start, t_end)
     df=df.rename(columns={'Unfilled': 'Base Unfilled'})
     df=df[['SRC', 'Demand', 'Base Unfilled']]
-    df.to_csv(path+'base_input.csv', index=False)
+    out_path=path+'base_input.csv'
+    df.to_csv(out_path, index=False)
+    return out_path
     
 def prep_for_rg_charts(path, t_start, t_end):
     """Given the path to a directory containing multiple demand trend files that each end with _trends.txt, """
@@ -272,16 +274,15 @@ def prep_for_rg_charts(path, t_start, t_end):
     ##spit base data
     ##instead of to csv, group_by Cut Level and Target 
     groups=options.groupby(['Cut Level', 'Target'])
+    base_path = base_data(path, t_start, t_end)
     for k, gr in groups:
         level, target=k
-        out_name='level_'+level +'_target_'+target+'_input.csv'
+        out_name='level_'+level +'_target_'+target
         # You can save each 'gr' in a csv as follows
-        gr.to_csv(path+out_name)
-        
-    ##dataframe to csv without index
-    ##then output 3 charts for each
-    #subprocess.call(["Rscript", "/home/craig/workspace/visualize-demand/red_green_chart.R", trend_path, rg_out_name, out_path])
-    options.to_csv(path+"all_options.txt", index = False)
+        out_path=path+out_name+'_input.csv'
+        gr.to_csv(out_path, index=False)
+        ##output 3 charts for each
+        subprocess.call(["Rscript", "/home/craig/workspace/visualize-demand/red_green_chart_v2.R", path, out_name, base_path])
     
 def add_periods(DemandTrends, m4_wkbk_path):
     periods=pd.read_excel(m4_wkbk_path, sheet_name = "PeriodRecords")

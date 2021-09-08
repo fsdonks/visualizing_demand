@@ -59,10 +59,5 @@ def cut_map(trend_path, max_path):
 max_path = '/home/craig/runs/visualizing_demand/computed_maxes.xlsx'
 in_map=cut_map("/home/craig/runs/cut-trends/trends/", max_path)
 #dep.delta_table(in_map, "/home/craig/runs/cut-trends/trends/")
-trend_file = "/home/craig/runs/cut-trends/trends/A/target_a3_option_2.0_lever_1.0.txt"
-df=dep.make_trends(trend_file, 1000, 2000)
-print(df.head())
 trend_path= "/home/craig/runs/cut-trends/trends/"
-df= dep.prep_data(trend_path, 1000, 2000)
-print(df)
 dep.prep_for_rg_charts(trend_path, 1000, 2000)
