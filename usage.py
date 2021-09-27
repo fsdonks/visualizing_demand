@@ -58,6 +58,6 @@ def cut_map(trend_path, max_path):
 
 max_path = '/home/craig/runs/visualizing_demand/computed_maxes.xlsx'
 in_map=cut_map("/home/craig/runs/cut-trends/trends/", max_path)
-#dep.delta_table(in_map, "/home/craig/runs/cut-trends/trends/")
+dep.delta_table(in_map, "/home/craig/runs/cut-trends/trends/")
 trend_path= "/home/craig/runs/cut-trends/trends/"
 dep.prep_for_rg_charts(trend_path, 1000, 2000)
