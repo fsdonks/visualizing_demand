@@ -44,7 +44,8 @@ def sand_trends_by_demand_group(DemandTrends):
      
     # Add a title for the whole plot
     plt.subplots_adjust(top=0.92)
-    g.fig.suptitle('Fill by Demand Type')
+    g.fig.suptitle('Fill by Demand Type', y=1.05)
+    g.set_axis_labels(y_var="Unit Count")
     return g
 
 #Compute % met by demand type and SRC
@@ -65,12 +66,21 @@ def fills_by_demand_group(DemandTrends):
     fills=fills.sort_values(['%_met'])
     return fills
 
+
+def overall_met(DemandTrends):
+    df=DemandTrends[(DemandTrends["DemandGroup"]!="peak_hold") &
+                    (DemandTrends["DemandGroup"]!="RC_NonBOG-War")].copy()
+    return compute_fill(df)
+
 def process_trends(DemandTrends, plot_path):
     grid=sand_trends_by_demand_group(DemandTrends)
     #plt.savefig(plot_path)
     # Show the graph
     #plt.show()
     fills=fills_by_demand_group(DemandTrends)
+    fills=fills.append({"DemandGroup": 'Overall', '%_met': overall_met(DemandTrends)},
+                 ignore_index=True) 
+    print(fills)
     return fills, grid
 
 def images_to_pdf(image_paths, filename):
