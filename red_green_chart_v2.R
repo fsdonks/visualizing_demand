@@ -7,6 +7,19 @@ isTables<-FALSE
 #global level to indicate that we are creating bar charts with one row for each Cut Level
 level<-FALSE
 
+summary_colors<-c("#D2222D", "#238823")
+all_colors<-c("#1A1818", summary_colors)
+#suck in results table
+in_path=paste(getwd(), "/", "Results_Table.xlsx", sep="")
+hifes_path=paste(getwd(), "/", "HIFEs.xlsx", sep="")
+base_case=494
+#use for save_level_charts
+base_option=1
+#the order of level chart output
+level_order=c(494, 300)
+#order of the columns named by the DemandGroup
+order_of_demands=c("Moke", "Hinny")
+
 make_input_data <- function(option_path, out_name, base_path) {
   if(is.data.frame(option_path)){
     cut_fill=option_path
@@ -140,19 +153,6 @@ save_charts <- function(options_path, out_name, path){
   ggsave(paste(out_name, "_summary.jpeg", sep=""), plot=plt, device='jpeg', path=options_path)
 }
 
-#args will be option file path and base file path'
-#files are stuck in option file path + SRC, HIFE, Branch, Summary
-
-#save_charts(paste(getwd(), "/", sep=""), 'notional_fill_by_option', paste(getwd(), '/notional_base_supply_unfilled_input.csv', sep=""))
-
-args = commandArgs(trailingOnly=TRUE)
-options_path=args[1]
-out_name=args[2]
-base_path=args[3]
-if(!is.na(options_path)) {
-  save_charts(options_path, out_name, base_path)
-}
-
 charts_for_levels <- function(df, group, base, scenario) {
   #used in process_data for the demand order as well as in save_charts
   isTables<<-TRUE
@@ -199,17 +199,17 @@ static_charts <- function(static_path) {
     group_walk(charts_for_scenarios)
 }
 
-summary_colors<-c("#D2222D", "#238823")
-all_colors<-c("#1A1818", summary_colors)
-#suck in results table
-in_path=paste(getwd(), "/", "Results_Table.xlsx", sep="")
-hifes_path=paste(getwd(), "/", "HIFEs.xlsx", sep="")
-base_case=494
-#use for save_level_charts
-base_option=1
-#the order of level chart output
-level_order=c(494, 300)
-#order of the columns named by the DemandGroup
-order_of_demands=c("Moke", "Hinny")
-static_charts(in_path)
+#args will be option file path and base file path'
+#files are stuck in option file path + SRC, HIFE, Branch, Summary
 
+#save_charts(paste(getwd(), "/", sep=""), 'notional_fill_by_option', paste(getwd(), '/notional_base_supply_unfilled_input.csv', sep=""))
+
+args = commandArgs(trailingOnly=TRUE)
+options_path=args[1]
+out_name=args[2]
+base_path=args[3]
+if(!is.na(options_path)) {
+  save_charts(options_path, out_name, base_path)
+} else {
+  static_charts(in_path)
+}

@@ -12,6 +12,7 @@ import openpyxl
 from functools import reduce
 import subprocess
 import os
+Rscript = "/home/craig/Downloads/R-3.6.3/bin/Rscript"
 
 def trends_by_demand_type(DemandTrends):
     DemandTrends['TotalFilled']=DemandTrends['TotalFilled']
@@ -201,7 +202,7 @@ def delta_table(run_seq, out_path):
         trend_path=out_path+run_name+'_trends.txt'
         trends.to_csv(trend_path, sep ='\t')
         rg_out_name = run_name+"_rg_chart.jpeg"
-        subprocess.call(["Rscript", "/home/craig/workspace/visualize-demand/red_green_chart.R", trend_path, rg_out_name, out_path])
+        subprocess.call([Rscript, "/home/craig/workspace/visualize-demand/red_green_chart.R", trend_path, rg_out_name, out_path])
         sand_chart_path= out_path+run_name+".jpg"
         image_list.append(sand_chart_path)
         image_list.append(out_path + rg_out_name)
@@ -228,6 +229,7 @@ def delta_table(run_seq, out_path):
         grid.savefig(image_list[grid_num+delta])
         #there was also a red, green chart added to image_list
         delta=delta+1
+    df_merged.to_csv(out_path+'table_summary.csv')
     results_pdf(df_merged, image_list, out_path)
 
 def add_data_tags(df, trend_path):
@@ -292,7 +294,8 @@ def prep_for_rg_charts(path, t_start, t_end):
         out_path=path+out_name+'_input.csv'
         gr.to_csv(out_path, index=False)
         ##output 3 charts for each
-        subprocess.call(["Rscript", "/home/craig/workspace/visualize-demand/red_green_chart_v2.R", path, out_name, base_path])
+        result=subprocess.run([Rscript, "/home/craig/workspace/visualize-demand/red_green_chart_v2.R", path, out_name, base_path], stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
+        print(result.returncode, result.stdout, result.stderr)
     
 def add_periods(DemandTrends, m4_wkbk_path):
     periods=pd.read_excel(m4_wkbk_path, sheet_name = "PeriodRecords")
