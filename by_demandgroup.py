@@ -234,9 +234,9 @@ def delta_table(run_seq, out_path):
 
 def add_data_tags(df, trend_path):
     options=trend_path.split('_')
-    df['Cut Level'] = options[5]
+    df['Cut Level'] = options[1]
     df['Option'] = options[3]
-    df['Target']=options[1]
+    df['Lever']=options[5]
     return df
     
 def make_trends(trend_path, t_start, t_end):
@@ -269,6 +269,12 @@ def base_data(path, t_start, t_end):
     df.to_csv(out_path, index=False)
     return out_path
     
+def save_rg_end_strength_data(options_df, out_path):
+    level_path=out_path+"level_input.csv"
+    options_df.to_csv(level_path)
+    subprocess.call([Rscript, "/home/craig/workspace/visualize-demand/red_green_chart_v2.R", '', '', out_path+'base_input.csv', level_path])
+    return level_path
+
 def prep_for_rg_charts(path, t_start, t_end):
     """Given the path to a directory containing multiple demand trend files that each end with _trends.txt, """
     options = prep_data(path, t_start, t_end)
@@ -285,17 +291,19 @@ def prep_for_rg_charts(path, t_start, t_end):
     options['Branch'] = options['Branch'].fillna('no_branch')
     ##spit base data
     ##instead of to csv, group_by Cut Level and Target 
-    groups=options.groupby(['Cut Level', 'Target'])
+    groups=options.groupby(['Cut Level', 'Lever'])
     base_path = base_data(path, t_start, t_end)
     for k, gr in groups:
-        level, target=k
-        out_name='level_'+level +'_target_'+target
+        level, lever=k
+        out_name='level_'+level +'_lever_'+lever
         # You can save each 'gr' in a csv as follows
         out_path=path+out_name+'_input.csv'
         gr.to_csv(out_path, index=False)
         ##output 3 charts for each
         result=subprocess.run([Rscript, "/home/craig/workspace/visualize-demand/red_green_chart_v2.R", path, out_name, base_path], stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
         print(result.returncode, result.stdout, result.stderr)
+    #save output for end strength level chart
+    save_rg_end_strength_data(options, path)
     
 def add_periods(DemandTrends, m4_wkbk_path):
     periods=pd.read_excel(m4_wkbk_path, sheet_name = "PeriodRecords")

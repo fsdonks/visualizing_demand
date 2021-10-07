@@ -6,7 +6,8 @@ library(xlsx)
 isTables<-FALSE
 #global level to indicate that we are creating bar charts with one row for each Cut Level
 level<-FALSE
-
+#global, are we processing marathon data?  needed for order of level chart
+marathon<-FALSE
 summary_colors<-c("#D2222D", "#238823")
 all_colors<-c("#1A1818", summary_colors)
 #suck in results table
@@ -15,6 +16,8 @@ hifes_path=paste(getwd(), "/", "HIFEs.xlsx", sep="")
 base_case=494
 #use for save_level_charts
 base_option=1
+#use for end strength chart as a filter
+base_lever=1
 #the order of level chart output
 level_order=c(494, 300)
 #order of the columns named by the DemandGroup
@@ -23,8 +26,13 @@ order_of_demands=c("Moke", "Hinny")
 make_input_data <- function(option_path, out_name, base_path) {
   if(is.data.frame(option_path)){
     cut_fill=option_path
+    if("Unfilled" %in% colnames(base_path)) {
     base_path=select(base_path, c("SRC", "Demand", "Unfilled"))
     base_unfilled=rename(base_path, Base.Unfilled=Unfilled)
+    }
+    else {
+      base_unfilled=select(base_path,c("SRC", "Demand", "Base.Unfilled"))
+    }
     cut_fill$Option=as.numeric(cut_fill$Option)
   } else {
     o_path=paste(options_path, out_name, '_input.csv', sep="")
@@ -57,7 +65,7 @@ process_data <- function(data, demand_order) {
     mutate(Label=ifelse(Value>0.2, str_c(round(Value*100, digits=0), "%"), "")) %>%
     mutate(Demand=ordered(Demand, levels=demand_order),
            Type=ordered(Type, levels=c("Base.Unfilled", "Unfilled", "Filled")))
-  if(level) {
+  if(level && !marathon) {
     data=mutate(data, Cut.Level=ordered(Cut.Level, levels=level_order))
   }
   data %>%
@@ -160,17 +168,16 @@ charts_for_levels <- function(df, group, base, scenario) {
   isTables<<-FALSE
 }
 
-save_level_chart <- function(chart_data, base_data, group) {
+save_level_chart <- function(chart_data, base_data, group, options_path) {
   data=make_input_data(chart_data, "", base_data) %>%
     filter(Option==base_option)
-  isTables<<-TRUE
+  #isTables<<-TRUE
   level<<-TRUE
   level_data <- summarize_data(group_by(data, Option, Cut.Level, Demand))
-  isTables<<-FALSE
+  #isTables<<-FALSE
   plt = risk_chart(level_data, "Cut.Level")
   level <<- FALSE
   print(plt)
-  options_path=dirname(in_path)
   #group is vector so we need to collapse here.
   ggsave(paste(c(group, 'end-strength.jpeg'), collapse='_'), plot=plt, device='jpeg', path=options_path)
 }
@@ -184,7 +191,7 @@ charts_for_scenarios <- function(df, group) {
   #save level charts here
   #now we want to show a row for 494, too
   level<<-TRUE
-  save_level_chart(df, base_table, group)
+  save_level_chart(df, base_table, group, dirname(in_path))
   level<<-FALSE
   non_base_table %>%
     group_by(Cut.Level) %>%
@@ -203,13 +210,28 @@ static_charts <- function(static_path) {
 #files are stuck in option file path + SRC, HIFE, Branch, Summary
 
 #save_charts(paste(getwd(), "/", sep=""), 'notional_fill_by_option', paste(getwd(), '/notional_base_supply_unfilled_input.csv', sep=""))
+prep_level_data <- function(level_path){
+  level_data <- read.csv(level_path, stringsAsFactors=FALSE)
+  base_data <- 
+  level_data <- 
+    level_data %>%
+    filter(Option==base_option) %>%
+    filter(Lever==base_lever)
+}
 
 args = commandArgs(trailingOnly=TRUE)
 options_path=args[1]
 out_name=args[2]
 base_path=args[3]
-if(!is.na(options_path)) {
+level_path=args[4]
+if(!is.na(options_path) && options_path!='') {
   save_charts(options_path, out_name, base_path)
+} else if(!is.na(level_path)) {
+  marathon<<-TRUE
+  save_level_chart(prep_level_data(level_path), read.csv(base_path, stringsAsFactors=FALSE), "", dirname(level_path))
+  marathon<<-FALSE
 } else {
+  isTables<<-TRUE
   static_charts(in_path)
+  isTables<<-FALSE
 }
