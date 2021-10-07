@@ -80,8 +80,11 @@ summarize_data <- function(grouped_data){
 risk_chart <- function(data, x) {
   plt=ggplot(data, aes(x=Option, y=Value, label=Label, fill=Type)) +
     geom_bar(position="stack", stat="identity", width=1, colour="black")
-  if(x!="Branch") {
+  if(x!="Branch" && !level) {
     plt=plt+geom_text(color="white", position=position_stack(vjust=0.5))
+  }
+  else if(level) {
+    plt=plt+geom_text(color="white", position=position_stack(vjust=0.5), fontface='bold', size=5)
   }
   plt<-plt +
     labs(title=str_c("Fill by ", x, ", Demand, and Cut Option"), x=x, y="") +
